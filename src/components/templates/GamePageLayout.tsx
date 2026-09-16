@@ -25,10 +25,17 @@ export function GamePageLayout() {
         <p>
           <kbd className="font-pixel text-dino-ink/70">SPACE</kbd> /{" "}
           <kbd className="font-pixel text-dino-ink/70">↑</kbd> /{" "}
-          <kbd className="font-pixel text-dino-ink/70">ENTER</kbd> — jump
+          <kbd className="font-pixel text-dino-ink/70">ENTER</kbd> — jump ·{" "}
+          <kbd className="font-pixel text-dino-ink/70">↓</kbd> — duck (hold)
         </p>
         <p className="mt-1">
-          Tap (mobile) — start · jump · restart · avoid the cacti
+          <kbd className="font-pixel text-dino-ink/70">←</kbd> /{" "}
+          <kbd className="font-pixel text-dino-ink/70">→</kbd> — brake / accelerate ·{" "}
+          night falls every 700 pts
+        </p>
+        <p className="mt-1">
+          Tap (mobile) — start · jump · restart · avoid the cacti and the
+          pterodactyls
         </p>
       </footer>
     </main>

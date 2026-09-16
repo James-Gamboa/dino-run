@@ -18,6 +18,33 @@
   --color-dino-muted: #9a9081;
 }
 
+/*
+ * Game world theming: the scene's palette is exposed as local custom
+ * properties so the day/night cycle can cross-fade every element that
+ * lives inside the world (ground, sprites, hints) in one smooth pass.
+ * The page chrome (header, HUD, footer) keeps the site theme.
+ */
+.game-world {
+  --world-bg: var(--color-dino-paper);
+  --world-fg: var(--color-dino-ink);
+  --world-muted: var(--color-dino-muted);
+  --world-border: color-mix(in srgb, var(--color-dino-ink) 15%, transparent);
+  background-color: var(--world-bg);
+  color: var(--world-fg);
+  border-color: var(--world-border);
+  transition:
+    background-color 900ms ease,
+    color 900ms ease,
+    border-color 900ms ease;
+}
+
+.game-world[data-theme="night"] {
+  --world-bg: #17141f;
+  --world-fg: #d9d2c4;
+  --world-muted: #8b8391;
+  --world-border: color-mix(in srgb, var(--world-fg) 26%, transparent);
+}
+
 /* Subtle paper grain + very light dot grid, arcade editorial feel. */
 @layer base {
   html {

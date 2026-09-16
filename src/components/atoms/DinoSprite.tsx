@@ -3,8 +3,17 @@ import type { DinoPose } from "@/types/game";
 /**
  * Original pixel-art dinosaur sprite, drawn from scratch (no Chrome assets).
  * The dino faces right — the direction the world scrolls from.
- * Rects are positioned on a 2px grid inside the 46x48 logical box.
+ * Rects are positioned on a 2px grid. The ducking pose uses a wider,
+ * lower logical box (60x30); all other poses use 46x48.
  */
+
+const VIEW_BOXES: Record<DinoPose, string> = {
+  "run-1": "0 0 46 48",
+  "run-2": "0 0 46 48",
+  jump: "0 0 46 48",
+  duck: "0 0 60 30",
+  dead: "0 0 46 48",
+};
 
 const RECTS: Record<DinoPose, Array<[number, number, number, number]>> = {
   "run-1": [
@@ -48,6 +57,22 @@ const RECTS: Record<DinoPose, Array<[number, number, number, number]>> = {
     [10, 26, 8, 6],
     [24, 24, 8, 6],
   ],
+  duck: [
+    // tail
+    [2, 14, 4, 6],
+    // body (stretched low)
+    [6, 12, 34, 12],
+    // head + jaw (forward, lowered)
+    [36, 2, 16, 10],
+    [36, 10, 14, 4],
+    // eye
+    [46, 3, 3, 3],
+    // arm
+    [10, 20, 4, 6],
+    // legs folded under
+    [8, 24, 8, 6],
+    [20, 24, 8, 6],
+  ],
   dead: [
     [2, 12, 4, 4],
     [4, 10, 6, 6],
@@ -73,7 +98,7 @@ export interface DinoSpriteProps {
 export function DinoSprite({ pose, className }: DinoSpriteProps) {
   return (
     <svg
-      viewBox="0 0 46 48"
+      viewBox={VIEW_BOXES[pose]}
       className={className}
       aria-hidden="true"
       shapeRendering="crispEdges"

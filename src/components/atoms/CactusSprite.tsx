@@ -1,4 +1,4 @@
-import type { ObstacleKind } from "@/types/game";
+import type { CactusKind } from "@/types/game";
 
 /**
  * Original pixel-art cactus sprites, drawn from scratch (no Chrome assets).
@@ -7,7 +7,7 @@ import type { ObstacleKind } from "@/types/game";
  */
 
 const LAYOUTS: Record<
-  ObstacleKind,
+  CactusKind,
   { viewBox: [number, number]; rects: Array<[number, number, number, number]> }
 > = {
   small: {
@@ -46,7 +46,7 @@ const LAYOUTS: Record<
 };
 
 export interface CactusSpriteProps {
-  kind: ObstacleKind;
+  kind: CactusKind;
   className?: string;
 }
 
