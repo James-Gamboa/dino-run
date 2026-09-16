@@ -160,6 +160,8 @@ test.describe("Chrome Dino game", () => {
     // Touch controls visible on this viewport
     await expect(page.getByTestId("jump-button")).toBeVisible();
     await expect(page.getByTestId("jump-button")).toBeEnabled();
+    await expect(page.getByTestId("duck-button")).toBeVisible();
+    await expect(page.getByTestId("duck-button")).toBeEnabled();
 
     // Tap again while airborne-free: dino jumps
     await world.tap();
@@ -172,6 +174,141 @@ test.describe("Chrome Dino game", () => {
     await expect(page.getByTestId("restart-button")).toBeEnabled();
     await page.getByTestId("restart-button").tap();
     await expect(world).toHaveAttribute("data-phase", "playing");
+  });
+});
+
+test.describe("Chrome Dino v2 — duck, arrows and pterodactyls", () => {
+  /**
+   * Freezes natural spawning so each test observes exactly one obstacle.
+   * Without this, the very first cactus reaches the dino in <2 s and would
+   * end the run for reasons unrelated to the feature under test.
+   */
+  async function isolate(page: Page): Promise<void> {
+    await page.evaluate(() => {
+      window.__dinoTest?.clearObstacles();
+      window.__dinoTest?.setSpawning(false);
+    });
+  }
+
+  test("13. down arrow ducks the dino, releasing stands it back up", async ({ page }) => {
+    await page.keyboard.press("Space"); // start
+    await isolate(page);
+    const dino = page.getByTestId("dino");
+
+    await page.keyboard.down("ArrowDown");
+    await expect(dino).toHaveAttribute("data-ducking", "true");
+    await expect(dino).toHaveAttribute("data-pose", "duck");
+    const duckBox = await dino.boundingBox();
+    expect(duckBox).not.toBeNull();
+
+    await page.keyboard.up("ArrowDown");
+    await expect(dino).toHaveAttribute("data-ducking", "false");
+    const standBox = await dino.boundingBox();
+    expect(standBox).not.toBeNull();
+
+    // The duck sprite lies much lower than the standing one.
+    expect(duckBox!.height).toBeLessThan(standBox!.height);
+  });
+
+  test("14. a low pterodactyl crashes a standing dino", async ({ page }) => {
+    await page.keyboard.press("Space"); // start
+    await isolate(page);
+    await page.evaluate(() => window.__dinoTest?.forcePterodactyl("low"));
+    await expect(page.getByTestId("game-world")).toHaveAttribute(
+      "data-phase",
+      "gameover",
+      { timeout: 8_000 },
+    );
+  });
+
+  test("15. ducking lets the dino survive a mid pterodactyl", async ({ page }) => {
+    await page.keyboard.press("Space"); // start
+    await isolate(page);
+    await page.keyboard.down("ArrowDown");
+    await expect(page.getByTestId("dino")).toHaveAttribute("data-pose", "duck");
+
+    await page.evaluate(() => window.__dinoTest?.forcePterodactyl("mid"));
+    // The pterodactyl crosses the whole world in well under 2 s.
+    await page.waitForTimeout(2_600);
+    await expect(page.getByTestId("game-world")).toHaveAttribute(
+      "data-phase",
+      "playing",
+    );
+    await page.keyboard.up("ArrowDown");
+  });
+
+  test("16. the same mid pterodactyl kills a dino who stands", async ({ page }) => {
+    await page.keyboard.press("Space"); // start
+    await isolate(page);
+    await page.evaluate(() => window.__dinoTest?.forcePterodactyl("mid"));
+    await expect(page.getByTestId("game-world")).toHaveAttribute(
+      "data-phase",
+      "gameover",
+      { timeout: 8_000 },
+    );
+  });
+
+  test("17. a high pterodactyl is harmless if you keep running", async ({ page }) => {
+    await page.keyboard.press("Space"); // start
+    await isolate(page);
+    await page.evaluate(() => window.__dinoTest?.forcePterodactyl("high"));
+    await page.waitForTimeout(2_600);
+    await expect(page.getByTestId("game-world")).toHaveAttribute(
+      "data-phase",
+      "playing",
+    );
+  });
+
+  test("18. night falls every 700 points and day comes back", async ({ page }) => {
+    await page.keyboard.press("Space"); // start
+    await isolate(page);
+    await page.evaluate(() => window.__dinoTest?.setInvincible(true));
+    const world = page.getByTestId("game-world");
+
+    await expect(world).toHaveAttribute("data-theme", "day");
+
+    await page.evaluate(() => window.__dinoTest?.setScore(710));
+    await expect(world).toHaveAttribute("data-theme", "night", {
+      timeout: 3_000,
+    });
+
+    await page.evaluate(() => window.__dinoTest?.setScore(1_420));
+    await expect(world).toHaveAttribute("data-theme", "day", {
+      timeout: 3_000,
+    });
+  });
+
+  test("19. arrow keys throttle the run speed", async ({ page }) => {
+    await page.keyboard.press("Space"); // start
+    await isolate(page);
+    await page.evaluate(() => window.__dinoTest?.setInvincible(true));
+
+    const factor = () =>
+      page.evaluate(
+        () => window.__dinoTest?.getSnapshot()?.speedFactor ?? 0,
+      );
+    expect(await factor()).toBeCloseTo(1, 1);
+
+    await page.keyboard.down("ArrowRight");
+    await expect.poll(factor, { timeout: 3_000 }).toBeGreaterThan(1.15);
+    await page.keyboard.up("ArrowRight");
+
+    await page.keyboard.down("ArrowLeft");
+    await expect.poll(factor, { timeout: 3_000 }).toBeLessThan(0.85);
+    await page.keyboard.up("ArrowLeft");
+  });
+
+  test("20. pterodactyls spawn on their own past the unlock score", async ({ page }) => {
+    await page.keyboard.press("Space"); // start
+    await page.evaluate(() => {
+      // Invincible so the run survives long enough to observe the spawn.
+      window.__dinoTest?.setInvincible(true);
+      window.__dinoTest?.setScore(400); // past PTERODACTYL_UNLOCK_SCORE
+    });
+
+    await expect(
+      page.locator('[data-testid="obstacle"][data-kind="pterodactyl"]').first(),
+    ).toBeVisible({ timeout: 20_000 });
   });
 });
 
