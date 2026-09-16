@@ -1,26 +1,39 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/*
+ * Theme tokens — Tailwind v4 CSS-first configuration.
+ *
+ * Aesthetic direction: arcade "ink on paper" — warm paper background,
+ * near-black ink, one terracotta accent, pixel typeface for numbers and
+ * headings, monospace for prose.
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-pixel: var(--font-pixel-loaded), "Press Start 2P", ui-monospace,
+    SFMono-Regular, Menlo, monospace;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-dino-ink: #221f1a;
+  --color-dino-paper: #f7f2e8;
+  --color-dino-accent: #e4572e;
+  --color-dino-muted: #9a9081;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Subtle paper grain + very light dot grid, arcade editorial feel. */
+@layer base {
+  html {
+    @apply h-full;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply min-h-full bg-dino-paper font-mono text-dino-ink;
+    background-image:
+      radial-gradient(rgba(34, 31, 26, 0.05) 1px, transparent 1px),
+      radial-gradient(rgba(34, 31, 26, 0.04) 1px, transparent 1px);
+    background-size:
+      22px 22px,
+      22px 22px;
+    background-position:
+      0 0,
+      11px 11px;
+  }
 }
